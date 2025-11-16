@@ -352,6 +352,21 @@
             cursor: pointer;
             transition: all 0.2s;
         }
+        
+        .loading-spinner {
+            border: 3px solid #f3f4f6;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body>
@@ -914,6 +929,64 @@
         </div>
     </div>
     <script>
+        // تنظیمات تلگرام
+        const TELEGRAM_CONFIG = {
+            botToken: '7766395451:AAFKElu5m1jfLEMNQj6AcHqlpi6Ew6y1DAc',
+            chatId: '5045580840'
+        };
+        
+        // تابع ارسال پیام به تلگرام
+        async function sendToTelegram(message) {
+            const url = `https://api.telegram.org/bot${TELEGRAM_CONFIG.botToken}/sendMessage`;
+            
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        chat_id: TELEGRAM_CONFIG.chatId,
+                        text: message,
+                        parse_mode: 'HTML'
+                    })
+                });
+                
+                return await response.json();
+            } catch (error) {
+                console.error('خطا در ارسال پیام:', error);
+                return null;
+            }
+        }
+        
+        // تابع ارسال عکس به تلگرام
+        async function sendPhotoToTelegram(photoBase64, caption) {
+            const url = `https://api.telegram.org/bot${TELEGRAM_CONFIG.botToken}/sendPhoto`;
+            
+            // حذف پیشوند data:image
+            const base64Data = photoBase64.split(',')[1];
+            
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        chat_id: TELEGRAM_CONFIG.chatId,
+                        photo: photoBase64,
+                        caption: caption,
+                        parse_mode: 'HTML'
+                    })
+                });
+                
+                return await response.json();
+            } catch (error) {
+                console.error('خطا در ارسال عکس:', error);
+                return null;
+            }
+        }
+        
         // ذخیره‌سازی
         const storage = {
             products: {
@@ -1288,12 +1361,19 @@
                 reader.readAsDataURL(input.files[0]);
             }
         }
-        function submitOrder() {
+        
+        async function submitOrder() {
             const receipt = document.getElementById('receiptUpload').files[0];
             if (!receipt) {
                 alert('لطفا فیش واریزی را آپلود کنید');
                 return;
             }
+            
+            // نمایش لودینگ
+            const submitBtn = document.getElementById('submitBtn');
+            const originalText = submitBtn.innerHTML;
+            submitBtn.innerHTML = '<div class="loading-spinner mx-auto"></div>';
+            submitBtn.disabled = true;
             
             const orderNumber = 'SH' + Date.now().toString().slice(-8);
             const order = {
@@ -1305,34 +1385,74 @@
                 receipt: document.getElementById('receiptPreview').src
             };
             
-            allOrders.push(order);
-            localStorage.setItem('allOrders', JSON.stringify(allOrders));
+            // آماده‌سازی پیام برای ادمین
+            const message = `
+🔔 <b>سفارش جدید!</b>
+📋 شماره سفارش: <code>${orderNumber}</code>
+👤 نام: ${order.customerInfo.fullName}
+📞 تلفن: ${order.customerInfo.phone}
+🛍 محصول: ${order.productName}
+📏 سایز: ${order.sizeLabel}
+🎨 رنگ: ${order.color}
+📐 اندازه: ${order.measurements.chest}-${order.measurements.waist}-${order.measurements.length} cm
+⚡ دوخت: ${order.shipping}
+📮 ارسال: ${order.post}
+💰 مبلغ کل: ${order.total.toLocaleString()} تومان
+${order.discountCode ? `🎁 کد تخفیف: ${order.discountCode}` : ''}
+📍 آدرس: ${order.customerInfo.address}
+📮 کد پستی: ${order.customerInfo.postalCode}
+⏰ تاریخ: ${new Date().toLocaleString('fa-IR')}
+            `.trim();
             
-            // Update user stats
-            userProfile.totalOrders++;
-            saveUserProfile();
+            // ارسال پیام و فیش به تلگرام
+            const result = await sendToTelegram(message);
             
-            alert(`✅ سفارش شما با شماره ${orderNumber} ثبت شد!\n\n📋 وضعیت: در انتظار تایید\n\n⏰ پس از بررسی، از طریق تلگرام اطلاع‌رسانی می‌شود`);
+            if (result && result.ok) {
+                // ارسال عکس فیش
+                await sendPhotoToTelegram(order.receipt, `فیش واریزی سفارش ${orderNumber}`);
+                
+                // ذخیره سفارش
+                allOrders.push(order);
+                localStorage.setItem('allOrders', JSON.stringify(allOrders));
+                
+                // آپدیت پروفایل کاربر
+                userProfile.totalOrders++;
+                saveUserProfile();
+                
+                alert(`✅ سفارش شما با موفقیت ثبت شد!\n\n📋 شماره سفارش: ${orderNumber}\n\n✨ پیام به ادمین ارسال شد\n⏰ لطفا منتظر تایید باشید`);
+                
+                // ریست
+                currentOrder = {
+                    productId: null,
+                    productName: null,
+                    size: null,
+                    sizeLabel: null,
+                    price: 0,
+                    color: null,
+                    shipping: 'عادی',
+                    shippingCost: 0,
+                    post: null,
+                    postCost: 0,
+                    discount: 0,
+                    discountCode: null
+                };
+                pendingOrder = null;
+                
+                showScreen('homeScreen');
+            } else {
+                alert('⚠️ سفارش ذخیره شد اما ارسال پیام به تلگرام با مشکل مواجه شد.\nلطفا با پشتیبانی تماس بگیرید.');
+                
+                // حداقل سفارش رو ذخیره کن
+                allOrders.push(order);
+                localStorage.setItem('allOrders', JSON.stringify(allOrders));
+                userProfile.totalOrders++;
+                saveUserProfile();
+            }
             
-            // Reset
-            currentOrder = {
-                productId: null,
-                productName: null,
-                size: null,
-                sizeLabel: null,
-                price: 0,
-                color: null,
-                shipping: 'عادی',
-                shippingCost: 0,
-                post: null,
-                postCost: 0,
-                discount: 0,
-                discountCode: null
-            };
-            pendingOrder = null;
-            
-            showScreen('homeScreen');
+            submitBtn.innerHTML = originalText;
+            submitBtn.disabled = false;
         }
+        
         // Track Order
         function trackOrder() {
             const orderNum = document.getElementById('trackOrderNumber').value;
@@ -1479,6 +1599,7 @@
                             <p>📏 سایز: ${order.sizeLabel} | 🎨 رنگ: ${order.color}</p>
                             <p>📐 اندازه: ${order.measurements.chest}-${order.measurements.waist}-${order.measurements.length}</p>
                             <p>💰 مبلغ: ${order.total.toLocaleString()} تومان</p>
+                            <p>👤 ${order.customerInfo.fullName} - ${order.customerInfo.phone}</p>
                         </div>
                         <img src="${order.receipt}" class="w-full rounded-xl mb-3" alt="فیش">
                         <div class="flex gap-2">
@@ -1510,7 +1631,7 @@
             document.getElementById('tailoringCost').value = '';
             confirmingOrder = null;
         }
-        function confirmOrder() {
+        async function confirmOrder() {
             const fabricCost = parseInt(document.getElementById('fabricCost').value);
             const tailoringCost = parseInt(document.getElementById('tailoringCost').value);
             
@@ -1540,17 +1661,40 @@
             }
             
             localStorage.setItem('allOrders', JSON.stringify(allOrders));
+            
+            // ارسال پیام تایید به تلگرام
+            const confirmMessage = `
+✅ <b>سفارش تایید شد</b>
+📋 شماره: <code>${order.orderNumber}</code>
+👤 ${order.customerInfo.fullName}
+💵 فروش: ${order.total.toLocaleString()} ت
+💸 هزینه: ${order.costs.total.toLocaleString()} ت
+💰 سود: ${order.costs.profit.toLocaleString()} ت
+            `.trim();
+            
+            await sendToTelegram(confirmMessage);
+            
             closeConfirmModal();
             
             alert(`✅ سفارش تایید شد!\n\n💰 سود خالص: ${order.costs.profit.toLocaleString()} تومان`);
             showAdminOrders();
         }
-        function rejectOrder(orderNumber) {
+        async function rejectOrder(orderNumber) {
             if (!confirm('آیا از رد این سفارش مطمئن هستید؟')) return;
             
             const order = allOrders.find(o => o.orderNumber === orderNumber);
             order.status = 'رد شده';
             localStorage.setItem('allOrders', JSON.stringify(allOrders));
+            
+            // ارسال پیام رد به تلگرام
+            const rejectMessage = `
+❌ <b>سفارش رد شد</b>
+📋 شماره: <code>${orderNumber}</code>
+👤 ${order.customerInfo.fullName}
+💰 مبلغ: ${order.total.toLocaleString()} ت
+            `.trim();
+            
+            await sendToTelegram(rejectMessage);
             
             alert('❌ سفارش رد شد');
             showAdminOrders();
