@@ -348,6 +348,7 @@
                 opacity: 1;
             }
         }
+        
         .shipping-option, .post-option {
             cursor: pointer;
             transition: all 0.2s;
@@ -371,8 +372,48 @@
 </head>
 <body>
     <div class="app-container">
+        <!-- صفحه ورود/ثبت نام -->
+        <div id="loginScreen" class="screen active">
+            <div class="bg-white min-h-screen flex items-center justify-center p-6">
+                <div class="w-full max-w-md">
+                    <div class="text-center mb-8">
+                        <h1 class="text-4xl font-bold mb-2">👑 شهزاد استایل</h1>
+                        <p class="text-gray-600">ورود به حساب کاربری</p>
+                    </div>
+                    
+                    <div class="bg-gradient-to-br from-purple-50 to-indigo-50 rounded-2xl p-6 mb-6">
+                        <div class="input-group">
+                            <label class="block text-sm font-bold mb-2">شماره تلفن (یوزرنیم)</label>
+                            <input type="tel" id="loginPhone" placeholder="09123456789" maxlength="11">
+                        </div>
+                        
+                        <div class="input-group">
+                            <label class="block text-sm font-bold mb-2">رمز عبور</label>
+                            <input type="password" id="loginPassword" placeholder="123456">
+                        </div>
+                        
+                        <button onclick="userLogin()" class="w-full bg-gradient-to-r from-purple-600 to-indigo-600 text-white py-4 rounded-xl font-bold text-lg btn">
+                            ورود 🔑
+                        </button>
+                    </div>
+                    
+                    <div class="bg-blue-50 border-2 border-blue-200 rounded-2xl p-4 text-center">
+                        <p class="text-sm text-blue-800 mb-2">👋 کاربر جدید هستید؟</p>
+                        <p class="text-xs text-blue-700">با اولین خرید، حساب کاربری برای شما ساخته می‌شود</p>
+                        <button onclick="guestMode()" class="mt-3 bg-blue-600 text-white px-6 py-2 rounded-xl font-bold text-sm btn">
+                            ادامه بدون ورود (مهمان)
+                        </button>
+                    </div>
+                    
+                    <div class="mt-6 text-center">
+                        <p class="text-xs text-gray-500">رمز عبور پیش‌فرض همه کاربران: <span class="font-bold">123456</span></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
         <!-- صفحه اصلی -->
-        <div id="homeScreen" class="screen active">
+        <div id="homeScreen" class="screen">
             <div class="header-gradient text-white p-6 pb-32">
                 <div class="flex items-center justify-between mb-6">
                     <div onclick="adminClickCounter()" id="adminSecretBtn">
@@ -435,6 +476,7 @@
                 </div>
             </div>
         </div>
+        
         <!-- صفحه خرید -->
         <div id="shopScreen" class="screen">
             <div class="bg-white min-h-screen">
@@ -448,6 +490,7 @@
                 </div>
             </div>
         </div>
+        
         <!-- صفحه جزئیات محصول -->
         <div id="productDetailScreen" class="screen">
             <div class="bg-white min-h-screen">
@@ -568,6 +611,7 @@
                 </button>
             </div>
         </div>
+        
         <!-- صفحه اندازه‌گیری -->
         <div id="measurementsScreen" class="screen">
             <div class="bg-white min-h-screen">
@@ -633,6 +677,7 @@
                 </button>
             </div>
         </div>
+        
         <!-- صفحه فاکتور -->
         <div id="invoiceScreen" class="screen">
             <div class="bg-white min-h-screen">
@@ -667,6 +712,7 @@
                 </button>
             </div>
         </div>
+        
         <!-- صفحه پیگیری -->
         <div id="trackScreen" class="screen">
             <div class="bg-white min-h-screen">
@@ -694,6 +740,7 @@
                 </div>
             </div>
         </div>
+        
         <!-- صفحه پروفایل -->
         <div id="profileScreen" class="screen">
             <div class="bg-white min-h-screen">
@@ -736,6 +783,7 @@
                 </div>
             </div>
         </div>
+        
         <!-- صفحه تخفیف -->
         <div id="discountScreen" class="screen">
             <div class="bg-white min-h-screen">
@@ -780,6 +828,7 @@
                 </div>
             </div>
         </div>
+        
         <!-- صفحه پشتیبانی -->
         <div id="supportScreen" class="screen">
             <div class="bg-white min-h-screen">
@@ -839,6 +888,7 @@
                 </div>
             </div>
         </div>
+        
         <!-- پنل ادمین -->
         <div id="adminScreen" class="screen">
             <div class="bg-white min-h-screen">
@@ -875,6 +925,7 @@
             </div>
         </div>
     </div>
+    
     <!-- Modal ادمین -->
     <div id="adminModal" class="modal">
         <div class="modal-content">
@@ -892,6 +943,7 @@
             </div>
         </div>
     </div>
+    
     <!-- Modal تایید سفارش -->
     <div id="confirmModal" class="modal">
         <div class="modal-content">
@@ -915,6 +967,7 @@
             </div>
         </div>
     </div>
+    
     <!-- Install Prompt -->
     <div id="installPrompt" class="install-prompt">
         <p class="font-bold mb-2">نصب اپلیکیشن</p>
@@ -928,6 +981,7 @@
             </button>
         </div>
     </div>
+    
     <script>
         // تنظیمات تلگرام
         const TELEGRAM_CONFIG = {
@@ -962,9 +1016,6 @@
         // تابع ارسال عکس به تلگرام
         async function sendPhotoToTelegram(photoBase64, caption) {
             const url = `https://api.telegram.org/bot${TELEGRAM_CONFIG.botToken}/sendPhoto`;
-            
-            // حذف پیشوند data:image
-            const base64Data = photoBase64.split(',')[1];
             
             try {
                 const response = await fetch(url, {
@@ -1018,6 +1069,7 @@
                 'FIRST10': {percent: 10, maxUses: -1, uses: 0}
             }
         };
+        
         let currentOrder = {
             productId: null,
             productName: null,
@@ -1032,6 +1084,7 @@
             discount: 0,
             discountCode: null
         };
+        
         let userProfile = JSON.parse(localStorage.getItem('userProfile')) || {
             userId: 'U' + Date.now(),
             points: 0,
@@ -1040,8 +1093,92 @@
             isVip: false,
             joinDate: new Date().toISOString()
         };
+        
         let allOrders = JSON.parse(localStorage.getItem('allOrders')) || [];
         let pendingOrder = null;
+        
+        // سیستم لاگین و ثبت نام
+        let allUsers = JSON.parse(localStorage.getItem('allUsers')) || {};
+        let currentUser = JSON.parse(localStorage.getItem('currentUser')) || null;
+        let isGuestMode = false;
+        
+        // بررسی لاگین در ابتدای لود صفحه
+        window.addEventListener('load', function() {
+            if (currentUser) {
+                // کاربر لاگین کرده
+                userProfile = allUsers[currentUser] || userProfile;
+                showScreen('homeScreen');
+                updateProfile();
+            } else {
+                // نمایش صفحه لاگین
+                showScreen('loginScreen');
+            }
+        });
+        
+        // تابع ورود کاربر
+        function userLogin() {
+            const phone = document.getElementById('loginPhone').value.trim();
+            const password = document.getElementById('loginPassword').value;
+            
+            if (!phone || !password) {
+                alert('لطفا شماره تلفن و رمز عبور را وارد کنید');
+                return;
+            }
+            
+            if (phone.length !== 11 || !phone.startsWith('09')) {
+                alert('شماره تلفن باید 11 رقم و با 09 شروع شود');
+                return;
+            }
+            
+            // بررسی وجود کاربر
+            if (allUsers[phone]) {
+                if (allUsers[phone].password === password) {
+                    // ورود موفق
+                    currentUser = phone;
+                    userProfile = allUsers[phone];
+                    localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                    showScreen('homeScreen');
+                    updateProfile();
+                } else {
+                    alert('رمز عبور اشتباه است');
+                }
+            } else {
+                alert('کاربری با این شماره تلفن یافت نشد\n\nبرای ثبت‌نام، اولین خرید خود را انجام دهید');
+            }
+        }
+        
+        // حالت مهمان
+        function guestMode() {
+            isGuestMode = true;
+            currentUser = null;
+            showScreen('homeScreen');
+        }
+        
+        // ثبت نام کاربر جدید
+        function registerUser(phone, fullName) {
+            if (allUsers[phone]) {
+                // کاربر قبلا ثبت نام کرده
+                return false;
+            }
+            
+            const newUser = {
+                phone: phone,
+                fullName: fullName,
+                password: '123456',
+                userId: 'U' + Date.now(),
+                points: 0,
+                totalSpent: 0,
+                totalOrders: 0,
+                isVip: false,
+                joinDate: new Date().toISOString()
+            };
+            
+            allUsers[phone] = newUser;
+            localStorage.setItem('allUsers', JSON.stringify(allUsers));
+            
+            return true;
+        }
+        
         // PWA Install
         let deferredPrompt;
         window.addEventListener('beforeinstallprompt', (e) => {
@@ -1049,6 +1186,7 @@
             deferredPrompt = e;
             document.getElementById('installPrompt').style.display = 'block';
         });
+        
         function installApp() {
             if (deferredPrompt) {
                 deferredPrompt.prompt();
@@ -1058,9 +1196,11 @@
                 });
             }
         }
+        
         function dismissInstall() {
             document.getElementById('installPrompt').style.display = 'none';
         }
+        
         // Navigation
         function showScreen(screenId) {
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
@@ -1077,6 +1217,7 @@
                 loadProfileDetails();
             }
         }
+        
         // Profile
         function updateProfile() {
             document.getElementById('userPoints').textContent = userProfile.points.toLocaleString();
@@ -1095,9 +1236,11 @@
             
             saveUserProfile();
         }
+        
         function saveUserProfile() {
             localStorage.setItem('userProfile', JSON.stringify(userProfile));
         }
+        
         function loadProfileDetails() {
             document.getElementById('profileStatus').textContent = userProfile.isVip ? '⭐ عضو VIP' : '👤 کاربر عادی';
             document.getElementById('profilePoints').textContent = userProfile.points.toLocaleString();
@@ -1127,6 +1270,7 @@
             `;
             document.getElementById('profileStats').innerHTML = statsHtml;
         }
+        
         // Products
         function loadProducts() {
             let html = '';
@@ -1149,6 +1293,7 @@
             }
             document.getElementById('productList').innerHTML = html;
         }
+        
         function selectProduct(productId) {
             currentOrder.productId = productId;
             currentOrder.productName = storage.products[productId].name;
@@ -1156,6 +1301,7 @@
             loadSizes();
             showScreen('productDetailScreen');
         }
+        
         function loadSizes() {
             const product = storage.products[currentOrder.productId];
             let html = '';
@@ -1176,6 +1322,7 @@
             }
             document.getElementById('sizeGrid').innerHTML = html;
         }
+        
         function selectSize(size, label, price) {
             document.querySelectorAll('.size-option').forEach(el => el.classList.remove('selected'));
             event.target.closest('.size-option').classList.add('selected');
@@ -1183,11 +1330,13 @@
             currentOrder.sizeLabel = label;
             currentOrder.price = price;
         }
+        
         function selectColor(color, element) {
             document.querySelectorAll('.color-option').forEach(el => el.classList.remove('selected'));
             element.classList.add('selected');
             currentOrder.color = color;
         }
+        
         function selectShipping(type, cost, element) {
             document.querySelectorAll('.shipping-option').forEach(el => {
                 el.classList.remove('border-purple-600');
@@ -1198,6 +1347,7 @@
             currentOrder.shipping = type;
             currentOrder.shippingCost = cost;
         }
+        
         function selectPost(type, cost, element) {
             document.querySelectorAll('.post-option').forEach(el => {
                 el.classList.remove('border-purple-600');
@@ -1208,6 +1358,7 @@
             currentOrder.post = type;
             currentOrder.postCost = cost;
         }
+        
         function continueToMeasurements() {
             if (!currentOrder.size) {
                 alert('لطفا سایز را انتخاب کنید');
@@ -1223,6 +1374,7 @@
             }
             showScreen('measurementsScreen');
         }
+        
         function applyDiscount() {
             const code = document.getElementById('discountCode').value.toUpperCase();
             const msg = document.getElementById('discountMessage');
@@ -1242,6 +1394,7 @@
                 msg.innerHTML = '<span class="text-red-600">❌ کد تخفیف نامعتبر یا منقضی شده</span>';
             }
         }
+        
         function showInvoice() {
             const chest = document.getElementById('chestSize').value;
             const waist = document.getElementById('waistSize').value;
@@ -1348,6 +1501,7 @@
             
             showScreen('invoiceScreen');
         }
+        
         function previewReceipt(input) {
             if (input.files && input.files[0]) {
                 const reader = new FileReader();
@@ -1376,6 +1530,24 @@
             submitBtn.disabled = true;
             
             const orderNumber = 'SH' + Date.now().toString().slice(-8);
+            
+            // بررسی و ثبت نام کاربر جدید
+            const customerPhone = pendingOrder.customerInfo.phone;
+            const customerName = pendingOrder.customerInfo.fullName;
+            let isNewUser = false;
+            
+            if (!allUsers[customerPhone]) {
+                // کاربر جدید - ثبت نام
+                isNewUser = registerUser(customerPhone, customerName);
+                
+                if (isNewUser) {
+                    // لاگین خودکار کاربر جدید
+                    currentUser = customerPhone;
+                    userProfile = allUsers[customerPhone];
+                    localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                }
+            }
+            
             const order = {
                 ...pendingOrder,
                 orderNumber,
@@ -1386,7 +1558,7 @@
             };
             
             // آماده‌سازی پیام برای ادمین
-            const message = `
+            let message = `
 🔔 <b>سفارش جدید!</b>
 📋 شماره سفارش: <code>${orderNumber}</code>
 👤 نام: ${order.customerInfo.fullName}
@@ -1403,6 +1575,11 @@ ${order.discountCode ? `🎁 کد تخفیف: ${order.discountCode}` : ''}
 📮 کد پستی: ${order.customerInfo.postalCode}
 ⏰ تاریخ: ${new Date().toLocaleString('fa-IR')}
             `.trim();
+            
+            // اگر کاربر جدیده، اطلاعات لاگین رو اضافه کن
+            if (isNewUser) {
+                message += `\n\n🆕 <b>کاربر جدید ثبت‌نام شد!</b>\n📱 یوزرنیم: ${customerPhone}\n🔐 پسورد: 123456\n\n⚠️ این اطلاعات رو برای مشتری ارسال کنید`;
+            }
             
             // ارسال پیام و فیش به تلگرام
             const result = await sendToTelegram(message);
@@ -1472,6 +1649,7 @@ ${order.discountCode ? `🎁 کد تخفیف: ${order.discountCode}` : ''}
                 `;
             }
         }
+        
         function displayOrderDetails(order) {
             const statusClass = order.status === 'تایید شده' ? 'status-confirmed' : 
                               order.status === 'رد شده' ? 'status-rejected' : 'status-pending';
@@ -1507,6 +1685,7 @@ ${order.discountCode ? `🎁 کد تخفیف: ${order.discountCode}` : ''}
                 </div>
             `;
         }
+        
         function loadMyOrders() {
             const myOrders = allOrders.filter(o => o.userId === userProfile.userId);
             
@@ -1539,6 +1718,7 @@ ${order.discountCode ? `🎁 کد تخفیف: ${order.discountCode}` : ''}
             });
             document.getElementById('myOrdersList').innerHTML = html;
         }
+        
         // Admin Panel
         let adminClicks = 0;
         let adminClickTimeout;
@@ -1556,6 +1736,7 @@ ${order.discountCode ? `🎁 کد تخفیف: ${order.discountCode}` : ''}
                 adminClicks = 0;
             }, 2000);
         }
+        
         function adminLogin() {
             const password = document.getElementById('adminPassword').value;
             if (password === 'admin123') {
@@ -1566,13 +1747,16 @@ ${order.discountCode ? `🎁 کد تخفیف: ${order.discountCode}` : ''}
                 alert('رمز عبور اشتباه است');
             }
         }
+        
         function closeAdminModal() {
             document.getElementById('adminModal').classList.remove('active');
             document.getElementById('adminPassword').value = '';
         }
+        
         function adminLogout() {
             showScreen('homeScreen');
         }
+        
         function showAdminOrders() {
             const pending = allOrders.filter(o => o.status === 'در انتظار تایید');
             
@@ -1615,7 +1799,9 @@ ${order.discountCode ? `🎁 کد تخفیف: ${order.discountCode}` : ''}
             });
             document.getElementById('adminContent').innerHTML = html;
         }
+        
         let confirmingOrder = null;
+        
         function openConfirmModal(orderNumber) {
             confirmingOrder = orderNumber;
             const order = allOrders.find(o => o.orderNumber === orderNumber);
@@ -1625,12 +1811,14 @@ ${order.discountCode ? `🎁 کد تخفیف: ${order.discountCode}` : ''}
             `;
             document.getElementById('confirmModal').classList.add('active');
         }
+        
         function closeConfirmModal() {
             document.getElementById('confirmModal').classList.remove('active');
             document.getElementById('fabricCost').value = '';
             document.getElementById('tailoringCost').value = '';
             confirmingOrder = null;
         }
+        
         async function confirmOrder() {
             const fabricCost = parseInt(document.getElementById('fabricCost').value);
             const tailoringCost = parseInt(document.getElementById('tailoringCost').value);
@@ -1679,6 +1867,7 @@ ${order.discountCode ? `🎁 کد تخفیف: ${order.discountCode}` : ''}
             alert(`✅ سفارش تایید شد!\n\n💰 سود خالص: ${order.costs.profit.toLocaleString()} تومان`);
             showAdminOrders();
         }
+        
         async function rejectOrder(orderNumber) {
             if (!confirm('آیا از رد این سفارش مطمئن هستید؟')) return;
             
@@ -1699,6 +1888,7 @@ ${order.discountCode ? `🎁 کد تخفیف: ${order.discountCode}` : ''}
             alert('❌ سفارش رد شد');
             showAdminOrders();
         }
+        
         function showDailyReport() {
             const today = new Date().toDateString();
             const todayOrders = allOrders.filter(o => {
@@ -1746,6 +1936,7 @@ ${order.discountCode ? `🎁 کد تخفیف: ${order.discountCode}` : ''}
                 </div>
             `;
         }
+        
         function showMonthlyReport() {
             const now = new Date();
             const thisMonth = now.getMonth();
@@ -1813,6 +2004,7 @@ ${order.discountCode ? `🎁 کد تخفیف: ${order.discountCode}` : ''}
                 </div>
             `;
         }
+        
         function showSalesChart() {
             let html = '<h3 class="text-lg font-bold mb-4">📈 نمودار فروش 7 روز</h3>';
             
@@ -1846,8 +2038,6 @@ ${order.discountCode ? `🎁 کد تخفیف: ${order.discountCode}` : ''}
             
             document.getElementById('adminContent').innerHTML = html;
         }
-        // Initialize
-        updateProfile();
     </script>
 </body>
 </html>
